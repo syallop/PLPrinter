@@ -52,12 +52,14 @@ module PLPrinter
   , document
   , renderDocument
 
-  , Printer
+  , Printer (..)
   , emptyPrinter
   , altPrinter
   , purePrinter
   , anyCharPrinter
   , pprint
+  , anyTextPrinter
+  , productMapPrinter
   )
   where
 
