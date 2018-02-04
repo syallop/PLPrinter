@@ -27,6 +27,7 @@ module PLPrinter.Doc
   -- ** From basic text
   , char
   , text
+  , rawText
   , string
 
   , usingShow
@@ -83,7 +84,7 @@ data Doc
 
   -- ^ The empty document.
   | DocEmpty
-  deriving (Show, Eq)
+  deriving (Show, Eq, Ord)
 
 data DocFmt = DocFmt
   { -- The maximum number of characters allowed on a line before a newline is
@@ -112,7 +113,7 @@ instance Monoid Doc where
 -- | The default document format has a max line length of 80 and begins with no
 -- indentation.
 docFmt :: DocFmt
-docFmt = DocFmt 80 0 0
+docFmt = DocFmt 250 0 0
 
 -- | Create a DocFmt with the given line length. Indentation begins at 0.
 mkDocFmt :: Int -> DocFmt
@@ -214,6 +215,9 @@ char = text . Text.singleton
 -- Print some text.
 text :: Text -> Doc
 text = DocText . Text.filter (/= '\n')
+
+rawText :: Text -> Doc
+rawText = mconcat . intersperse DocBreak . map DocText . Text.lines
 
 string :: String -> Doc
 string = text . Text.pack
