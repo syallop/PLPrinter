@@ -14,7 +14,7 @@ A NIH Pretty-Printer
 -}
 module PLPrinter.Doc
   (-- * Types
-    Doc(..)
+    Doc ()
   , DocFmt ()
 
   -- * Render a Doc
@@ -100,70 +100,52 @@ renderWith fmt doc = fst $ renderWith' fmt doc
     renderWith' :: DocFmt -> Doc -> (Text,DocFmt)
     renderWith' fmt d = case d of
       DocText inputTxt
-        -> let txt = inputTxt --Text.filter (/= '\n') inputTxt
+        -> let indentation :: Text
+               indentation = Text.replicate (_indent fmt) " "
 
-               (endFirstLine,rest) = Text.splitAt (remainingLineLength fmt) txt
+               txt :: Text
+               txt = inputTxt
 
-               -- Is the first line filled?
-               filledFirstLine     = Text.length endFirstLine == _lineLength fmt
+               requestedCharacters :: Int
+               requestedCharacters = maximumUsableLength fmt
 
-               -- Starting from the next new line, a list of text chunks with the correct amount
-               -- of indent spaces ahead of them
-               restChunks          = (indentSpaces fmt :)
-                                   . intersperse (indentSpaces fmt)
-                                   . Text.chunksOf (maximumUsableLength fmt)
-                                   $ rest
+               line :: Text
+               rest :: Text
+               (line,rest) = Text.splitAt requestedCharacters txt
 
-               -- The amount of characters remaining on the last line filled is either the length of the last line
-               -- , or if there isnt one, we're still on the same line and so its the original position plus however much we added
-               lastLineRemaining   = maybe (_colPosition fmt + Text.length endFirstLine)
-                                           Text.length
-                                   . safeHead
-                                   . reverse
-                                   $ restChunks
+               takenCharacters :: Int
+               takenCharacters = Text.length line
 
-               -- If we didnt fill the first line, then no new line is required and the 'restChunks' must be empty.
-               resultText          = endFirstLine
-                                  <> if filledFirstLine
-                                       then "\n" <> Text.intercalate "\n" restChunks
-                                       else ""
-              in (resultText,fmt{_colPosition = lastLineRemaining})
+            in if takenCharacters < requestedCharacters
+                 -- Took the last characters. End.
+                 then (mconcat [indentation,line],fmt{_colPosition = _colPosition fmt + takenCharacters})
+
+                 -- Took a lines worth, recurse.
+                 else let renderedLine = mconcat [indentation,line,"\n"]
+                          (rest,fmt)   = renderWith' (fmt{_colPosition=0}) (DocText rest)
+                         in (renderedLine<>rest,fmt)
 
       DocIndent i d
         -> let newIndent   = _indent fmt + i
-               newFmt      = fmt{_colPosition = newIndent
-                                ,_indent      = newIndent
+               newFmt      = fmt{_indent = newIndent
                                 }
-               txt0        = "\n" <> indentSpaces newFmt
-               (txt1,rFmt) = renderWith' newFmt d
-              in (txt0<>txt1,rFmt)
+             in renderWith' newFmt d
 
       DocEmpty
         -> (Text.empty,fmt)
 
       -- Append two Docs with either a space between them or a break to a new line
       DocAppend d0 d1
-        -> let (txt0,fmt0) = renderWith' fmt d0
-
-               -- If theres no room left on the line, start a new one for the second append.
-               -- Otherwise add a space before the second append
-               (txt1,fmt1) = if remainingLineLength fmt0 == 0
-                               then ("\n"<>indentSpaces fmt0,fmt0{_colPosition = _indent fmt0})
-                               else (" ",fmt0{_colPosition = _colPosition fmt0 + 1})
-
-               (txt2,fmt2) = renderWith' fmt1 d1
-              in (txt0<>txt1<>txt2,fmt2)
+        -> let (txt0,fmt0) = renderWith' fmt  d0
+               (txt1,fmt1) = renderWith' fmt0 d1
+              in (txt0<>txt1,fmt1)
 
       DocBreak
-        -> ("\n" <> indentSpaces fmt,fmt{_colPosition = _indent fmt})
+        -> ("\n",fmt{_colPosition = 0})
 
 safeHead :: [a] -> Maybe a
 safeHead []    = Nothing
 safeHead (x:_) = Just x
-
--- The amount of usable space left before the end of the line
-remainingLineLength :: DocFmt -> Int
-remainingLineLength fmt = _lineLength fmt - _indent fmt
 
 -- The amount of usable characters in a line.
 -- The maximum lines length subtract the number of spaces in the indentation.

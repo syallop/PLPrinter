@@ -15,8 +15,8 @@ A NIH Pretty-Printer
 -}
 module PLPrinter
   (-- * Types
-    Doc(..)
-  , DocFmt()
+    Doc ()
+  , DocFmt ()
 
    -- * Render a Doc
   , mkDocFmt
@@ -90,7 +90,7 @@ altPrinter :: Printer a -> Printer a -> Printer a
 altPrinter (Printer p) (Printer q) = Printer $ \a -> mplus (p a) (q a)
 
 purePrinter :: Eq a => a -> Printer a
-purePrinter a = Printer $ \a' -> if a == a' then Just DocEmpty else Nothing
+purePrinter a = Printer $ \a' -> if a == a' then Just mempty else Nothing
 
 anyCharPrinter :: Printer Char
 anyCharPrinter = Printer $ Just . char

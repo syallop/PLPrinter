@@ -16,6 +16,7 @@ import Data.Text (Text)
 import Data.Monoid
 import qualified Data.Text as Text
 import Control.Applicative
+import Control.Monad
 
 import Test.Hspec
 import Test.Hspec.QuickCheck
@@ -41,7 +42,7 @@ spec = do
       ]
 
     ,describe "when an indent of n is given" $ sequence_
-      [it "all lines have n spaces as a prefix" pending
+      [prop "all lines have n spaces as a prefix" $ pending
       ,it "all lines break at linelength - n" pending
       ]
 
@@ -67,3 +68,5 @@ spec = do
       ,it "any number of line breaks is still that number of line breaks" pending
       ]
     ]
+
+
