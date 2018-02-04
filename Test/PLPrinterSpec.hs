@@ -30,21 +30,22 @@ spec = do
     [
     ]
   describe "PLPrinter.Doc" $ sequence_
-    [describe "when using Monoid functionality" $ sequence_
-      [it "does not change the doc when mappending mempty before" pending
-      ,it "does not change the doc when mappending mempty after" pending
-      ,it "produces the same doc (d0 <> d1) <> d2 vs d0 <> (d1 <> d2)" pending
-      ]
+    [
+     {-describe "when using Monoid functionality" $ sequence_-}
+      {-[it "does not change the doc when mappending mempty before" pending-}
+      {-,it "does not change the doc when mappending mempty after" pending-}
+      {-,it "produces the same doc (d0 <> d1) <> d2 vs d0 <> (d1 <> d2)" pending-}
+      {-]-}
 
-    ,describe "when a line length m is given" $ sequence_
+     describe "when a line length m is given" $ sequence_
       [it "no line is longer than m when the document contains no newlines" pending
       ,it "no line is longer than m when the document contains newlines" pending
       ]
 
-    ,describe "when an indent of n is given" $ sequence_
-      [prop "all lines have n spaces as a prefix" $ pending
-      ,it "all lines break at linelength - n" pending
-      ]
+    {-,describe "when an indent of n is given" $ sequence_-}
+      {-[prop "all lines have n spaces as a prefix" $ pending-}
+      {-,it "all lines break at linelength - n" pending-}
+      {-]-}
 
     ,describe "when two indents n and m are given" $ sequence_
       [it "when both indents are at the root, all lines have n+m spaces as prefix" pending
