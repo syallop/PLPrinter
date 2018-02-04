@@ -126,3 +126,28 @@ prop_monoid = HHog.property $ do
   annotateShow right
   assert $ on (==) (renderOutputText params) left right
 
+{- Test possibilities:
+
+- when a line length m is given
+  - no line is longer than m when the document contains no newlines
+  - no line is longer than m when the document contains newlines
+
+- when two indents n and m are given
+  - when both indents are at the root- all lines have n+m spaces as prefix
+  - lines under n but not m have only n spaces
+
+- when a newline is requested
+  - the internal position within the current line becomes 0
+  - the number of indent characters is inserted into the next line
+  - only one newline is inserted if at the end of the max line length
+
+- when ap
+  - documents that expand past the line length are broken at the line length
+
+- when rendering
+  - appended documents have length equal or greater than their sum
+  - appended text with no newlines has length equal to length plus the number of newlines and spaces that should have been inserted
+  - the empty document is the empty string
+  - any number of line breaks is still that number of line breaks
+
+-}
