@@ -2,7 +2,7 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                PLPrinter
-version:             0.2.0.0
+version:             0.3.0.0
 synopsis:            A NIH printer currently for use with an in-progress
                      Programming Language.
 -- description:         

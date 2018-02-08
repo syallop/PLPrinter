@@ -126,6 +126,18 @@ prop_monoid = HHog.property $ do
   annotateShow right
   assert $ on (==) (renderOutputText params) left right
 
+  -- Appending a newline and then a document after an indented document leaves
+  -- the trailing document unindented.
+  (inputLinesUnindented,docUnindented)
+    <- HHog.forAll $ mkIndentedDocument (GenDocParams maxLineLength 0 2 wrapAt)
+  let indentedAndNot      = docA <> lineBreak <> docUnindented
+      indentedAndNotText  = renderOutputText params indentedAndNot
+      indentedAndNotLines = Text.lines indentedAndNotText
+      trailingUnindentedLines = drop numberOfLines indentedAndNotLines
+  annotateShow indentedAndNotText
+  annotateShow indentedAndNotLines
+  assert $ all (\(rendered,input) -> rendered == input) . zip inputLinesUnindented $ trailingUnindentedLines
+
 {- Test possibilities:
 
 - when a line length m is given

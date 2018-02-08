@@ -28,6 +28,7 @@ module PLPrinter
    -- ** From basic text
   , char
   , text
+  , rawText
   , string
 
   , usingShow

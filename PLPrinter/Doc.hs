@@ -181,7 +181,8 @@ renderWith fmt doc = toStrict $ toLazyText $ fst $ renderWith' fmt doc
 
       -- Change the requested indent when a text is next inserted on a newline.
       DocIndent indentChange doc
-        -> renderWith' (fmt{_indent = indent + indentChange}) doc
+        -> let (txt, fmtAfter) = renderWith' (fmt{_indent = indent + indentChange}) doc
+            in (txt, fmtAfter{_indent = indent})
 
       -- Break by inserting a newline and resetting the position to 0.
       DocBreak
