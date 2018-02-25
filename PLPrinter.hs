@@ -61,6 +61,8 @@ module PLPrinter
   , pprint
   , anyTextPrinter
   , productMapPrinter
+
+  , bulleted
   )
   where
 

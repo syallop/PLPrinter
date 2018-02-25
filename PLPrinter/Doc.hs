@@ -52,6 +52,7 @@ module PLPrinter.Doc
 
   , parens
   , between
+  , bulleted
   )
   where
 
@@ -273,4 +274,7 @@ between l a r = l <> a <> r
 
 parens :: Doc -> Doc
 parens a = between (char '(') a (char ')')
+
+bulleted :: [Doc] -> Doc
+bulleted = foldr (\doc docAcc -> docAcc <> lineBreak <> text "- " <> doc) mempty
 
