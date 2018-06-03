@@ -60,7 +60,7 @@ module PLPrinter
   , anyCharPrinter
   , pprint
   , anyTextPrinter
-  , productMapPrinter
+  , rapPrinter
 
   , bulleted
   )
@@ -81,8 +81,8 @@ newtype Printer a = Printer {_unPPrint :: a -> Maybe Doc}
 pprint :: Printer a -> a -> Maybe Doc
 pprint = _unPPrint
 
-productMapPrinter :: Printer a -> Printer b -> Printer (a,b)
-productMapPrinter (Printer p) (Printer q) = Printer $ \(a,b) -> liftM2 mappend (p a) (q b)
+rapPrinter :: Printer a -> Printer b -> Printer (a,b)
+rapPrinter (Printer p) (Printer q) = Printer $ \(a,b) -> liftM2 mappend (p a) (q b)
 
 -- These functions cant form an Alternative because we can't implement
 -- the superclass Functor as we're a contravariant functor.
