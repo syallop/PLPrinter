@@ -56,16 +56,17 @@ module PLPrinter.Doc
   )
   where
 
+import Control.Applicative
+import Control.Monad
 import Data.List
 import Data.Monoid
+import Data.Semigroup
+import Data.String
 import Data.String
 import Data.Text (Text)
 import Data.Text.Lazy (toStrict)
 import Data.Text.Lazy.Builder (Builder, fromText, toLazyText)
 import qualified Data.Text as Text
-import Control.Monad
-import Control.Applicative
-import Data.String
 
 -- | A 'Doc'ument is something that can be printed nicely and appended to
 -- efficiently.
@@ -104,12 +105,14 @@ data DocFmt = DocFmt
   , _colPosition :: !Int
   }
 
+instance Semigroup Doc where
+  DocEmpty <> y        = y
+  x        <> DocEmpty = x
+  x        <> y        = DocAppend x y
+
 instance Monoid Doc where
   mempty  = DocEmpty
 
-  mappend DocEmpty y        = y
-  mappend x        DocEmpty = x
-  mappend x        y        = DocAppend x y
 
 -- | The default document format has a max line length of 80 and begins with no
 -- indentation.
