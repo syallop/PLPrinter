@@ -87,7 +87,11 @@ abcdefg
 Line breaks:
 ```Haskell
 -- Linebreaks insert a newline.
-> text "abc" <> lineBreak <> "def"
+> text "abc" <> lineBreak <> "def"-- | Two alternative printers can be tried left to right and succeeds if either
+-- succeeds.
+altPrinter :: Printer a -> Printer a -> Printer a
+altPrinter (Printer p) (Printer q) = Printer $ \a -> mplus (p a) (q a)
+
 abc
 def
 ```
@@ -221,7 +225,7 @@ Nothing
 
 The pure printer:
 ```Haskell
--- The pure printer succeeds when the value provided is equal to the one
+-- The pure printer succeeds when the value is equal to the one
 provided.
 > pprint (purePrinter 'a') 'a'
 Just 'a'

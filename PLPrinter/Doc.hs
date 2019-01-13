@@ -10,7 +10,14 @@ Copyright   : (c) Samuel A. Yallop, 2016
 Maintainer  : syallop@gmail.com
 Stability   : experimental
 
-A NIH Pretty-Printer
+'Documents' are defined as things which can be printed nicely and appended to
+efficiently. Documents are composed of 'Text', 'line-breaks' and regions of
+'indentation' and may be 'appended' together.
+
+Documents can be deconstructed by a 'render' function which takes formatting
+parameters to produce Text. The main supported parameter is line length. When
+rendering a Document, lines which exceed this length will have a newline
+character forcibly inserted.
 -}
 module PLPrinter.Doc
   (-- * Types
@@ -77,17 +84,21 @@ data Doc
   -- ^ Append two documents together.
   | DocAppend Doc Doc
 
-  -- ^ Adjust the requested indentation level for the following document.
+  -- ^ Adjust the requested indentation level for a document.
   | DocIndent Int Doc
 
-  -- ^ Insert a line break now. Indentation is only inserted when text is
-  -- appended.
+  -- ^ Insert a line break now. Indentation characters are only inserted when
+  -- text is appended.
   | DocBreak
 
   -- ^ The empty document.
   | DocEmpty
   deriving (Show, Eq, Ord)
 
+-- | Formatting configuration used when rendering a document. Carries maximum
+-- line length as well as the current indentation and position within a line.
+--
+-- Construct with 'mkDocFmt' or use default 'docFmt'.
 data DocFmt = DocFmt
   { -- The maximum number of characters allowed on a line before a newline is
     -- forcibly inserted. This includes any indentation and does not include
@@ -105,15 +116,17 @@ data DocFmt = DocFmt
   , _colPosition :: !Int
   }
 
+-- Documents combine via DocAppend with DocEmpty as the empty document.
 instance Semigroup Doc where
   DocEmpty <> y        = y
   x        <> DocEmpty = x
   x        <> y        = DocAppend x y
 
+-- DocEmpty is the empty document.
 instance Monoid Doc where
   mempty  = DocEmpty
 
--- | The default document format has a max line length of 80 and begins with no
+-- | The default document format has a max line length of 250 and begins with no
 -- indentation.
 docFmt :: DocFmt
 docFmt = DocFmt 250 0 0
@@ -195,67 +208,63 @@ renderWith fmt doc = toStrict $ toLazyText $ fst $ renderWith' fmt doc
       DocEmpty
         -> (mempty,fmt)
 
-safeHead :: [a] -> Maybe a
-safeHead []    = Nothing
-safeHead (x:_) = Just x
-
--- The amount of usable characters in a line.
--- The maximum lines length subtract the number of spaces in the indentation.
-maximumUsableLength :: DocFmt -> Int
-maximumUsableLength fmt = _lineLength fmt - _colPosition fmt
-
--- A string of spaces for the current indentation level
-indentSpaces :: DocFmt -> Text
-indentSpaces fmt = Text.replicate (_indent fmt) " "
-
 -- | Render a 'Doc'ument to Text with default formatting settings.
 render :: Doc -> Text
 render = renderWith docFmt
 
--- Print a single char
+-- | Print a single char.
 char :: Char -> Doc
 char = text . Text.singleton
 
--- Print some text.
+-- | Print some text which may not contain newline characters.
 text :: Text -> Doc
 text = DocText . Text.filter (/= '\n')
 
+-- | Print text replacing newlines with an explicit line-break.
 rawText :: Text -> Doc
 rawText = mconcat . intersperse DocBreak . map DocText . Text.lines
 
+-- | Convert a string to text with newline characters removed.
 string :: String -> Doc
 string = text . Text.pack
 
--- Use a things show instance as input to DocText
+-- | Use a things show instance as input to DocText
 usingShow :: Show a => a -> Doc
 usingShow = string . show
 
+-- | Convert a Bool to a Doc using its show instance.
 bool :: Bool -> Doc
 bool = usingShow
 
+-- | Convert an Int to a Doc using its show instance.
 int :: Int -> Doc
 int = usingShow
 
--- Indent a document by a quantity
+-- | Indent a document by a number of spaces.
 indent :: Int -> Doc -> Doc
 indent = DocIndent
 
--- Indent a document by a single space
+-- | Indent a document by a single space.
 indent1 :: Doc -> Doc
 indent1 = DocIndent 1
 
+-- | Insert a line break.
 lineBreak :: Doc
 lineBreak = DocBreak
 
+-- | A document followed by a newline.
 newLine :: Doc -> Doc
 newLine d = d <> lineBreak
 
+-- | The empty document.
 emptyDoc :: Doc
 emptyDoc = DocEmpty
 
+-- | Document describes the canonical document associated with a type.
 class Document d where
   document :: d -> Doc
 
+-- | Convert a value to its canonical document and render it to text.
 renderDocument :: Document d => d -> Text
 renderDocument = render . document
 
@@ -266,17 +275,17 @@ instance Document String where document = string
 instance Document Bool   where document = bool
 instance Document Int    where document = int
 instance Document Doc    where document = id
-{-instance Document [Doc]  where document = foldr DocAppend DocEmpty-}
 
-{-instance IsString Doc where-}
-  {-fromString = string-}
-
+-- | A left document, a document and a right document is the document between
+-- the left and right document.
 between :: Doc -> Doc -> Doc -> Doc
 between l a r = l <> a <> r
 
+-- | Parens wraps a document in '(' ')' parentheses.
 parens :: Doc -> Doc
 parens a = between (char '(') a (char ')')
 
+-- | Bulleted inserts '- ' before each document on a new line.
 bulleted :: [Doc] -> Doc
 bulleted = foldr (\doc docAcc -> docAcc <> lineBreak <> text "- " <> doc) mempty
 
