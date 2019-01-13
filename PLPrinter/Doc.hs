@@ -113,7 +113,6 @@ instance Semigroup Doc where
 instance Monoid Doc where
   mempty  = DocEmpty
 
-
 -- | The default document format has a max line length of 80 and begins with no
 -- indentation.
 docFmt :: DocFmt

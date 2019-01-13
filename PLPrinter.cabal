@@ -26,7 +26,6 @@ cabal-version:       >= 1.10
 
 library
   exposed-modules:     PLPrinter
-                     , PLPrinter.Debug
                      , PLPrinter.Doc
 
   build-depends:       base >= 4.12
