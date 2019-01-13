@@ -20,46 +20,45 @@ rendering a Document, lines which exceed this length will have a newline
 character forcibly inserted.
 -}
 module PLPrinter.Doc
-  (-- * Types
-    Doc ()
-  , DocFmt ()
-
-  -- * Render a Doc
-  , mkDocFmt
-  , docFmt
-  , render
-  , renderWith
-
-  -- * Create Docs
-  -- ** From basic text
+  ( Doc ()
+  -- * Constructing documents
+  -- ** From text
   , char
   , text
   , rawText
   , string
 
-  , usingShow
-
-  -- ** Indentation
-  , indent
-  , indent1
-
   -- ** From primitive types
   , int
   , bool
 
-  -- **
+  -- ** Misc
+  , usingShow
+
+  -- ** Transforming documents
+  -- *** Appending
+  , (<>)
   , emptyDoc
-
   , lineBreak
-  , newLine
 
-  -- * Class of things which have a canonical Doc
-  , Document(..)
-  , renderDocument
+  -- *** Indentation
+  , indent
+  , indent1
 
+  -- *** Misc combinators
   , parens
   , between
   , bulleted
+  , newLine
+
+  -- * Rendering Documents
+  , Document(..)
+  , renderDocument
+  , DocFmt ()
+  , mkDocFmt
+  , docFmt
+  , render
+  , renderWith
   )
   where
 
