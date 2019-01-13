@@ -196,11 +196,6 @@ appends in a sensible way. E.G.
   89
 ```
 
-This process involves:
-- Marshaling its constituent documents into Text
-- A
-calculating indentations and inserting newlines
-
 ## Printers
 A 'Printer' attempts to transform values into 'Doc'uments and can be though of as being
 typed `a -> Maybe Doc`. Some simple printers are provided.
