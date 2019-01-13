@@ -1,17 +1,33 @@
-# PLPrinter
+# PLPrinter - experimental
 
-This package defines 'Doc'uments - things which can be printed nicely and
-appended to efficiently.
+This package provides a pretty-printer and is abstracted from an effort to build
+a programming language with minimal external dependencies.
 
-Documents may be composed of text, line-breaks and regions of indentation and
-may be appended together.
+`Documents` are defined as things which can be printed nicely and appended to
+efficiently. Documents are composed of `Text`, `line-breaks` and regions of
+`indentation` and may be `appended` together.
 
-Documents can be constructed by Printers - functions which map values to possible Documents.
+Documents can be constructed by `Printers` which may fail and be composed where
+each or either Printer must succeed. A design goal is to represent them as a
+dual to `Parsers` such that syntax can be defined that maps to both a Printer and
+a Parser that are the inverse of each other.
 
-Documents can be deconstructed by a 'render' function which takes formatting
+Documents can be deconstructed by a `render` function which takes formatting
 parameters to produce Text. The main supported parameter is line length. When
 rendering a Document, lines which exceed this length will have a newline
 character forcibly inserted.
+
+## Table of contents
+- [Directory overview](#directory-overview)
+- [Documents](#documents)
+  - [Constructing Documents](#constructing-documents)
+    - [Adding text](#adding-text)
+    - [Transforming documents](#transforming-documents)
+    - [Misc combinators](#misc-combinators)
+    - [Canonical transformations](#canonical-transformations)
+  - [Rendering Documents](#rendering-documents)
+- [Printers](#printers)
+
 
 ## Directory overview
 
@@ -107,8 +123,6 @@ Some combinators are provided:
 -- Place a document between to others
 > between (char '(') (char ')') (text "abc")
 (abc)
-> document True
-true
 
 -- Place a document between parentheses
 > parens "abc"
