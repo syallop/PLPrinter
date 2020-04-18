@@ -77,20 +77,20 @@ import qualified Data.Text as Text
 -- | A 'Doc'ument is something that can be printed nicely and appended to
 -- efficiently.
 data Doc
-  -- ^ Literal text which never contains a newline.
+  -- | Literal text which never contains a newline.
   = DocText Text
 
-  -- ^ Append two documents together.
+  -- | Append two documents together.
   | DocAppend Doc Doc
 
-  -- ^ Adjust the requested indentation level for a document.
+  -- | Adjust the requested indentation level for a document.
   | DocIndent Int Doc
 
-  -- ^ Insert a line break now. Indentation characters are only inserted when
+  -- | Insert a line break now. Indentation characters are only inserted when
   -- text is appended.
   | DocBreak
 
-  -- ^ The empty document.
+  -- | The empty document.
   | DocEmpty
   deriving (Show, Eq, Ord)
 
@@ -99,29 +99,29 @@ data Doc
 --
 -- Construct with 'mkDocFmt' or use default 'docFmt'.
 data DocFmt = DocFmt
-  { -- The maximum number of characters allowed on a line before a newline is
+  { -- | The maximum number of characters allowed on a line before a newline is
     -- forcibly inserted. This includes any indentation and does not include
     -- the newline character.
     _lineLength  :: !Int
 
-    -- The number of spaces to be inserted whenever text is to be written and it
+    -- | The number of spaces to be inserted whenever text is to be written and it
     -- is the start of a new line.
   , _indent      :: !Int
 
-    -- The current position within a line.
+    -- | The current position within a line.
     -- Between 0 and the lineLength.
     -- A position of 0 indicates a newline has just been written and so any
     -- following text must indent.
   , _colPosition :: !Int
   }
 
--- Documents combine via DocAppend with DocEmpty as the empty document.
+-- | Documents combine via DocAppend with DocEmpty as the empty document.
 instance Semigroup Doc where
   DocEmpty <> y        = y
   x        <> DocEmpty = x
   x        <> y        = DocAppend x y
 
--- DocEmpty is the empty document.
+-- | DocEmpty is the empty document.
 instance Monoid Doc where
   mempty  = DocEmpty
 
