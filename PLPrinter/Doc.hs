@@ -286,5 +286,5 @@ parens a = between (char '(') a (char ')')
 
 -- | Bulleted inserts '- ' before each document on a new line.
 bulleted :: [Doc] -> Doc
-bulleted = foldr (\doc docAcc -> docAcc <> lineBreak <> text "- " <> doc) mempty
+bulleted = foldl (\docAcc doc -> docAcc <> lineBreak <> text "- " <> doc) mempty
 
