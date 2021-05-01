@@ -8,15 +8,12 @@ import Control.Monad
 import PLPrinter
 import Data.Text (Text)
 import Data.List
-import Data.Monoid
 import Data.Function
 import qualified Data.Text as Text
 
 import Hedgehog as HHog
 import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Range as Range
-import Hedgehog.Gen.QuickCheck as Gen
-import Test.QuickCheck.Hedgehog as HHog
 
 main :: IO ()
 main = do
@@ -61,10 +58,11 @@ genDocLines (GenDocParams maxLineLength _indentNumber numberOfLines _wrapAt) =
 -- Generate a document, returning the input lines used to create it.
 -- The input lines are interspersed with newlines and all wrapped under an
 -- indentation block.
+-- TODO: Respect all parameters!
 mkIndentedDocument :: GenDocParams -> HHog.Gen ([Text],Doc)
-mkIndentedDocument params@(GenDocParams maxLineLength indentNumber numberOfLines _wrapAt) = do
-  lines <- genDocLines params
-  pure (lines,indent indentNumber . mconcat . intersperse lineBreak . map text $ lines)
+mkIndentedDocument params@(GenDocParams _maxLineLength indentNumber _numberOfLines _wrapAt) = do
+  ls <- genDocLines params
+  pure (ls,indent indentNumber . mconcat . intersperse lineBreak . map text $ ls)
 
 -- Render a document with some generated parameters.
 renderOutputText :: GenDocParams -> Doc -> Text
@@ -73,7 +71,7 @@ renderOutputText (GenDocParams _maxLineLength _indentNumber _numberOfLines wrapA
 
 prop_indentation :: HHog.Property
 prop_indentation = HHog.property $ do
-  params@(GenDocParams maxLineLength indentNumber numberOfLines wrapAt)
+  params@(GenDocParams _maxLineLength indentNumber numberOfLines wrapAt)
     <- HHog.forAll genDocParams
 
   (inputLines,doc)
@@ -102,11 +100,11 @@ prop_indentation = HHog.property $ do
 
 prop_monoid :: HHog.Property
 prop_monoid = HHog.property $ do
-  params@(GenDocParams maxLineLength indentNumber numberOfLines wrapAt)
+  params@(GenDocParams maxLineLength _indentNumber numberOfLines wrapAt)
     <- HHog.forAll genDocParams
 
   -- Create a document
-  (inputLinesA,docA) <- HHog.forAll $ mkIndentedDocument params
+  (_inputLinesA,docA) <- HHog.forAll $ mkIndentedDocument params
 
   -- Appending mempty before does nothing.
   assert $ on (==) (renderOutputText params) (mempty<>docA) docA
@@ -115,8 +113,8 @@ prop_monoid = HHog.property $ do
   assert $ on (==) (renderOutputText params) (docA<>mempty) docA
 
   -- Create two more documents
-  (inputLinesB,docB) <- HHog.forAll $ mkIndentedDocument params
-  (inputLinesC,docC) <- HHog.forAll $ mkIndentedDocument params
+  (_inputLinesB,docB) <- HHog.forAll $ mkIndentedDocument params
+  (_inputLinesC,docC) <- HHog.forAll $ mkIndentedDocument params
 
   -- The order of appending is irrelevant
   -- (a<>b)<>c == a<>(b<>c)

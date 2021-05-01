@@ -62,13 +62,7 @@ module PLPrinter.Doc
   )
   where
 
-import Control.Applicative
-import Control.Monad
 import Data.List
-import Data.Monoid
-import Data.Semigroup
-import Data.String
-import Data.String
 import Data.Text (Text)
 import Data.Text.Lazy (toStrict)
 import Data.Text.Lazy.Builder (Builder, fromText, toLazyText)
@@ -137,75 +131,75 @@ mkDocFmt lineLength = DocFmt lineLength 0 0
 -- | Render a document to Text with some 'DocFmt' formatting settings.
 renderWith :: DocFmt -> Doc -> Text
 renderWith fmt doc = toStrict $ toLazyText $ fst $ renderWith' fmt doc
-  where
-    renderWith' :: DocFmt -> Doc -> (Builder,DocFmt)
-    renderWith' fmt@(DocFmt lineLength indent colPosition) doc = case doc of
 
-      -- DocText never contains a newline character itself.
-      -- When the column position is 0 we must add any requested indentation.
-      -- When the max line length is hit, we must insert a linebreak.
-      DocText inputText
-        -> let indentationText :: Text
-               indentationText = if colPosition == 0 then Text.replicate indent " " else ""
+renderWith' :: DocFmt -> Doc -> (Builder,DocFmt)
+renderWith' fmt@(DocFmt lineLength indentation colPosition) doc = case doc of
 
-               remainingSpace :: Int
-               remainingSpace = lineLength - Text.length indentationText
+  -- DocText never contains a newline character itself.
+  -- When the column position is 0 we must add any requested indentation.
+  -- When the max line length is hit, we must insert a linebreak.
+  DocText inputText
+    -> let indentationText :: Text
+           indentationText = if colPosition == 0 then Text.replicate indentation " " else ""
 
-               atMostALine :: Text
-               restText    :: Text
-               (atMostALine,restText) = Text.splitAt remainingSpace inputText
+           remainingSpace :: Int
+           remainingSpace = lineLength - Text.length indentationText
 
-               lineSoFar :: Builder
-               lineSoFar = fromText indentationText <> fromText atMostALine
+           atMostALine :: Text
+           restText    :: Text
+           (atMostALine,restText) = Text.splitAt remainingSpace inputText
 
-               -- Did we manage to take a while line worth of text>
-               tookAWholeLine :: Bool
-               tookAWholeLine = Text.length atMostALine == remainingSpace
-             in if not tookAWholeLine
-                   -- If we didnt take a whole line, then the text must be
-                   -- finished. Our new position is the length we took plus the
-                   -- indentation we added.
-                   then (lineSoFar, fmt{_colPosition = colPosition + Text.length indentationText + Text.length atMostALine})
+           lineSoFar :: Builder
+           lineSoFar = fromText indentationText <> fromText atMostALine
 
-                   -- A whole line was taken
-                   else if restText == ""
-                          -- Because it fit _exactly_.
-                          -- Add a new line, reset the column position and we're
-                          -- done with the text.
-                          then (lineSoFar <> "\n", fmt{_colPosition = 0})
+           -- Did we manage to take a while line worth of text>
+           tookAWholeLine :: Bool
+           tookAWholeLine = Text.length atMostALine == remainingSpace
+         in if not tookAWholeLine
+               -- If we didnt take a whole line, then the text must be
+               -- finished. Our new position is the length we took plus the
+               -- indentation we added.
+               then (lineSoFar, fmt{_colPosition = colPosition + Text.length indentationText + Text.length atMostALine})
 
-                          -- And there is more text to go.
-                          -- Add a new line, reset the column position and
-                          -- recurse with the remaining DocText.
-                          else let thisLine :: Builder
-                                   thisLine = lineSoFar <> "\n"
+               -- A whole line was taken
+               else if restText == ""
+                      -- Because it fit _exactly_.
+                      -- Add a new line, reset the column position and we're
+                      -- done with the text.
+                      then (lineSoFar <> "\n", fmt{_colPosition = 0})
 
-                                   nextFmt :: DocFmt
-                                   nextFmt = fmt{_colPosition = 0}
+                      -- And there is more text to go.
+                      -- Add a new line, reset the column position and
+                      -- recurse with the remaining DocText.
+                      else let thisLine :: Builder
+                               thisLine = lineSoFar <> "\n"
 
-                                   otherLines :: Builder
-                                   finalFmt   :: DocFmt
-                                   (otherLines, finalFmt) = renderWith' nextFmt (DocText restText)
-                                  in (thisLine <> otherLines, finalFmt)
+                               nextFmt :: DocFmt
+                               nextFmt = fmt{_colPosition = 0}
 
-      -- Documents are appended by rendering one document and then the next.
-      DocAppend d0 d1
-        -> let (txt0,fmt0) = renderWith' fmt  d0
-               (txt1,fmt1) = renderWith' fmt0 d1
-              in (txt0<>txt1,fmt1)
+                               otherLines :: Builder
+                               finalFmt   :: DocFmt
+                               (otherLines, finalFmt) = renderWith' nextFmt (DocText restText)
+                              in (thisLine <> otherLines, finalFmt)
 
-      -- Change the requested indent when a text is next inserted on a newline.
-      DocIndent indentChange doc
-        -> let (txt, fmtAfter) = renderWith' (fmt{_indent = indent + indentChange}) doc
-            in (txt, fmtAfter{_indent = indent})
+  -- Documents are appended by rendering one document and then the next.
+  DocAppend d0 d1
+    -> let (txt0,fmt0) = renderWith' fmt  d0
+           (txt1,fmt1) = renderWith' fmt0 d1
+          in (txt0<>txt1,fmt1)
 
-      -- Break by inserting a newline and resetting the position to 0.
-      DocBreak
-        -> ("\n",fmt{_colPosition = 0})
+  -- Change the requested indent when a text is next inserted on a newline.
+  DocIndent indentChange indentedDoc
+    -> let (txt, fmtAfter) = renderWith' (fmt{_indent = indentation + indentChange}) indentedDoc
+        in (txt, fmtAfter{_indent = indentation})
 
-      -- Change nothing.
-      DocEmpty
-        -> (mempty,fmt)
+  -- Break by inserting a newline and resetting the position to 0.
+  DocBreak
+    -> ("\n",fmt{_colPosition = 0})
+
+  -- Change nothing.
+  DocEmpty
+    -> (mempty,fmt)
 
 -- | Render a 'Doc'ument to Text with default formatting settings.
 render :: Doc -> Text

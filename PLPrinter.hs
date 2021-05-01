@@ -77,13 +77,8 @@ module PLPrinter
   )
   where
 
-import Control.Applicative
 import Control.Monad
-import Data.List
-import Data.Monoid
-import Data.String
 import Data.Text (Text)
-import qualified Data.Text as Text
 
 import PLPrinter.Doc
 
