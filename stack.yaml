@@ -1,7 +1,6 @@
-resolver: lts-15.11
+resolver: lts-17.8
 flags: {}
 extra-package-dbs: []
 packages:
 - .
-extra-deps:
-- hedgehog-quickcheck-0.1
+extra-deps: []
